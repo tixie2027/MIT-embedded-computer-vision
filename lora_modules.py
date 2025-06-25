@@ -89,7 +89,8 @@ class LoRALinear(nn.Module):
         self.reset_trainable_parameters()
         self.adapter_enabled = False  # Controls the inferencing, "base" or "base + adapter"
 
-        self.precision = lora_config['precision']
+        self.precision = lora_config.get('precision', None)
+
 
     # Resetting/initializing trainable parameters: delta_weight_A, delta_weight_B, delta_bias (optional)
     def reset_trainable_parameters(self) -> None:
@@ -234,7 +235,7 @@ class LoRAConv1d(nn.Module):
         self.reset_trainable_parameters()
         self.adapter_enabled = False  # Controls the inferencing, "base" or "base + adapter"
 
-        self.precision = lora_config['precision']
+        self.precision = lora_config.get('precision', None)
 
     # Resetting/initializing trainable parameters: delta_weight_A, delta_weight_B, delta_bias (optional)
     def reset_trainable_parameters(self) -> None:
@@ -418,7 +419,7 @@ class LoRAConv2d(nn.Module):
         self.reset_trainable_parameters()
         self.adapter_enabled = False  # Controls the inferencing, "base" or "base + adapter"
 
-        self.precision = lora_config['precision']
+        self.precision = lora_config.get('precision', None)
 
     # Resetting/initializing trainable parameters: delta_weight_A, delta_weight_B, delta_bias (optional)
     def reset_trainable_parameters(self) -> None:
@@ -592,7 +593,7 @@ class LoRAConv3d(nn.Module):
         self.reset_trainable_parameters()
         self.adapter_enabled = False  # Controls the inferencing, "base" or "base + adapter"
 
-        self.precision = lora_config['precision']
+        self.precision = lora_config.get('precision', None)
 
     # Resetting/initializing trainable parameters: delta_weight_A, delta_weight_B, delta_bias (optional)
     def reset_trainable_parameters(self) -> None:
@@ -782,7 +783,7 @@ class LoRAConvTranspose2d(nn.Module):
         self.reset_trainable_parameters()
         self.adapter_enabled = False  # Controls the inferencing, "base" or "base + adapter"
 
-        self.precision = lora_config['precision']
+        self.precision = lora_config.get('precision', None)
 
     # Resetting/initializing trainable parameters: delta_weight_A, delta_weight_B, delta_bias (optional)
     def reset_trainable_parameters(self) -> None:
