@@ -31,7 +31,10 @@ def capture_images(num=8, warmup_frames=5, secs_bw_cap=0.1):
         time.sleep(secs_bw_cap)
     
     cap.release()
+    #print(images)
     return torch.cat(images, dim=0)  # [N, C, H, W]
+
+
 
 
 

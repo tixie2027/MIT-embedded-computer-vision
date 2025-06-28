@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 from capture_image import capture_images
-from demo import get_lora_model
+from inference import get_lora_model
 
 
 
@@ -33,13 +33,7 @@ import time
 
 
 
-
-
-
-
 device = torch.device("cpu")
-
-
 print('checkpoint 1')
 
 NUM_IMAGES = 4
