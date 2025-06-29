@@ -1,6 +1,16 @@
 ## On-Device Parameter-Efficient Fine-Tuning for Edge-Enabled Wildlife Camera Traps
-### Final Project for 6.5940 TinyML and Efficient Deep Learning Computing, Fall 2024
-#### Timm Haucke and Justin Kay
+
+## LoRA communication module between Raspberry Pi and laptop
+![lora module](https://github.com/user-attachments/assets/b3ad5b49-4c6d-4e06-a338-cff5f63a1ab5)
+
+## Examples of transferred embeddings
+
+![屏幕截图 2025-06-29 141808](https://github.com/user-attachments/assets/8998aba4-ffe2-4a31-977b-09be78f82e03)
+
+## Overall framework
+
+![image](https://github.com/user-attachments/assets/6f66b181-25da-4c2a-ab0e-93712e01194c)
+
 
 Automatically triggered cameras, also known as camera traps, are an indispensable tool for studying animal ecology. 
 Retrieving data from remote camera traps is an ongoing challenge. Due to bandwidth limitations, it is not practical to utilize satellite transmission in most cases. 
