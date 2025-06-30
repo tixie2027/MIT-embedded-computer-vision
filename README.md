@@ -5,7 +5,8 @@
 
 ## Examples of transferred embeddings
 
-![屏幕截图 2025-06-29 141808](https://github.com/user-attachments/assets/8998aba4-ffe2-4a31-977b-09be78f82e03)
+![image](https://github.com/user-attachments/assets/035f69cc-ecfe-4401-9311-6abfeb26d6ca)
+
 
 ## Overall framework
 
