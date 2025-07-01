@@ -1,7 +1,8 @@
 ## On-Device Parameter-Efficient Fine-Tuning for Edge-Enabled Wildlife Camera Traps
 
 ## LoRA communication module between Raspberry Pi and laptop
-![lora module](https://github.com/user-attachments/assets/b3ad5b49-4c6d-4e06-a338-cff5f63a1ab5)
+![ChatGPT Image Jul 1, 2025, 12_45_52 PM](https://github.com/user-attachments/assets/001d3ad3-01c5-4f6a-a870-7133b8843258)
+
 
 ## Examples of transferred embeddings
 
