@@ -1,38 +1,38 @@
-import cv2
+import subprocess
 import torch
-import matplotlib.pyplot as plt
+import cv2
 import time
+import os
 
-def capture_images(num=8, warmup_frames=5, secs_bw_cap=0.1):
-    cap = cv2.VideoCapture(0)
-    
-    # warm-up the camera
-    for _ in range(warmup_frames):
-        cap.read()
-    
+def capture_images(num=8, secs_bw_cap=0.1):
     images = []
+
     for i in range(num):
-        ret, frame = cap.read()
-        if not ret:
-            print(f"Failed to capture frame {i}")
-            break
+        filename = f"/tmp/frame_{i}.jpg"
+        subprocess.run([
+            "libcamera-still",
+            "-n",  # no preview
+            "-o", filename,
+            "--width", "640", "--height", "480",
+            "--timeout", "100"
+        ])
+
+        frame = cv2.imread(filename)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
-        # needs to be divisible by 16 for compressai model
+
+        # Pad to multiple of 16 for CompressAI
         h, w, _ = frame.shape
-        new_h = (h + 15) // 16 * 16 
-        new_w = (w + 15) // 16 * 16 
+        new_h = (h + 15) // 16 * 16
+        new_w = (w + 15) // 16 * 16
         frame = cv2.resize(frame, (new_w, new_h))
 
-        # convert to tensor: [C, H, W]
         tensor = torch.from_numpy(frame).permute(2, 0, 1).float() / 255.0
-        images.append(tensor.unsqueeze(0))  # [1, C, H, W]
+        images.append(tensor.unsqueeze(0))
 
         time.sleep(secs_bw_cap)
-    
-    cap.release()
-    #print(images)
+
     return torch.cat(images, dim=0)  # [N, C, H, W]
+
 
 
 

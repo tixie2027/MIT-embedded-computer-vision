@@ -4,9 +4,10 @@ from torchvision import transforms as T
 from PIL import Image
 from pathlib import Path
 from capture_image import capture_images
-#from encode_and_save import encode_and_save
-from torchvision import transforms as T
 import numpy as np
+import os
+import torchvision.transforms.functional as TF
+from torchvision.utils import save_image
 
 # -- your existing constants and Encoder class here --
 HEIGHT = 480
@@ -81,14 +82,27 @@ def save_latents_hex(latents: torch.Tensor,
 
 
 def main():
-    # capture batch
+    # Create directory for saving images
+    os.makedirs("captured_images", exist_ok=True)
+
+    # Capture batch of images as tensor: [N, C, H, W]
     images = capture_images()
-    # load or instantiate your encoder
-    encoder = Encoder(num_input_channels=3, base_channel_size=64, latent_dim=64) 
+
+    # Save each image to disk
+    for i, img_tensor in enumerate(images):
+        save_image(img_tensor, f"captured_images/image_{i}.png")
+
+    # Load or instantiate encoder
+    encoder = Encoder(num_input_channels=3, base_channel_size=64, latent_dim=64)
+    
+    # Encode to latents
     latents = encoder(images)
     print(latents)
     print(latents.type)
+
+    # Save latents as hex
     save_latents_hex(latents, "embeddings.txt")
+
 
 if __name__ == "__main__":
     main()
