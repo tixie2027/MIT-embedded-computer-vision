@@ -275,18 +275,26 @@ class Autoencoder(pl.LightningModule):
         for k, v in metrics.items():
             self.log(f'test_{k}', v)
 
+from compressai.zoo import bmshj2018_hyperprior
+
+
+
+
+
+
+
 
 class CompressaiWrapper(pl.LightningModule):
-    
     def __init__(self,
-                 model: nn.Module,
+                
                  width: int = WIDTH, 
                  height: int = HEIGHT):
         super().__init__()
         # Saving hyperparameters of autoencoder
         self.save_hyperparameters() 
         # Creating encoder and decoder
-        self.model = model
+        self.model = bmshj2018_hyperprior(quality=3, pretrained=True).eval()
+        #self.model = compressai.models.ScaleHyperprior(N=192, M=8)
         # Example input array needed for visualizing the graph of the network
         self.example_input_array = torch.zeros(2, 3, width, height)
         
@@ -341,6 +349,12 @@ class CompressaiWrapper(pl.LightningModule):
         self.log('test_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
         for k, v in metrics.items():
             self.log(f'test_{k}', v)
+
+    def compress(self, x):
+        return self.model.compress(x)
+    
+    def decompress(self, strings, shape):
+        return self.model.decompress(strings, shape)
 
 
 def compare_imgs(img1, img2, title_prefix="", i=0):

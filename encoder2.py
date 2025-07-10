@@ -9,24 +9,11 @@ import os
 import torchvision.transforms.functional as TF
 from torchvision.utils import save_image
 from compressai.zoo import bmshj2018_hyperprior
+from Iwildcam_Pretrain import Autoencoder, IWildCamDataset, CompressaiWrapper
+from lora_modules import LoRAConv2d, LoRALinear, LoRAConvTranspose2d
+import pytorch_lightning as pl
 
-
-# -- your existing constants and Encoder class here --
-HEIGHT = 448
-WIDTH = 640
-
-
-import pickle
-
-def save_out_raw(out, filename="compressed_output.pkl"):
-    with open(filename, "wb") as f:
-        pickle.dump(out, f)
-    print(f"[✓] Saved `out` exactly as-is to {filename}")
-
-
-
-
-
+#pretrained_filename = '8-epoch.04-val_loss.0.01.ckpt'
 
 def pad_to_multiple_of(x, base=64):
     """Pads a 4D tensor (N, C, H, W) to the next multiple of `base`."""
@@ -34,7 +21,6 @@ def pad_to_multiple_of(x, base=64):
     h_pad = (base - h % base) % base
     w_pad = (base - w % base) % base
     return torch.nn.functional.pad(x, (0, w_pad, 0, h_pad), mode='constant', value=0)
-
 
 def main():
     # Create directory for saving images
@@ -50,39 +36,17 @@ def main():
     for i, img_tensor in enumerate(images):
         save_image(img_tensor, f"captured_images/image_{i}.png")
 
-    # Step 3: Load pretrained CompressAI model
-    model = bmshj2018_hyperprior(quality=3, pretrained=True).eval()
+    # Instantiate the wrapper
+    wrapper = CompressaiWrapper()  
+    model = wrapper.model
 
-    # Step 4: Compress image
-    out = model.compress(images)  # Handles everything internally
-    print(out)
- 
-    #torch.save(out, "embeddings.pt")
-    #print("[✓] Saved full `out` dictionary to embeddings.pt")
-    import struct
-
-    def save_out_exactly(out, filename="embeddings.txt"):
-        with open(filename, "w") as f:
-            f.write(f"# shape: {tuple(out['shape'])}\n")
-            f.write("# hex-encoded float32 values (4 bytes per entry)\n\n")
-
-            for i, row in enumerate(out["strings"]):
-                f.write(f"# row {i}\n")
-                for j, barray in enumerate(row):
-                    padded = barray + b'\x00' * ((4 - len(barray) % 4) % 4)
-                    floats = []
-                    for k in range(0, len(padded), 4):
-                        chunk = padded[k:k+4]
-                        if len(chunk) < 4:
-                            continue
-                        # Unpack to float32, then re-pack to 4-byte hex
-                        float_bytes = struct.pack("f", struct.unpack("f", chunk)[0])
-                        floats.append(f"0x{float_bytes.hex()}")
-                    f.write(" ".join(floats) + "\n")
-                f.write("\n")
-        print(f"[✓] Saved float32 hex to {filename}")
-
-    save_out_exactly(out, "embeddings.txt")
+    # Now this works
+    wrapper.model.update()  # Needed before compress()
+    out = wrapper.compress(images)
+    data = out["strings"][0][0].hex(), out["strings"][0][1].hex(), out["strings"][1][0].hex(), out["strings"][1][1].hex()
+   
+    with open("embeddings.txt", "w") as f:
+        f.write(",".join(data))
 
     # Step 5: Calculate bit sizes
     compressed_bits = sum(len(s) for s in out["strings"][0]) * 8
@@ -99,9 +63,6 @@ def main():
     x_hat = recon["x_hat"].clamp(0, 1)
     save_image(x_hat[0], "reconstructed.png")
     print("[✓] Reconstructed image saved as reconstructed.png")
-
-
-
 
 
 if __name__ == "__main__":
