@@ -12,6 +12,7 @@ from compressai.zoo import bmshj2018_hyperprior
 from Iwildcam_Pretrain import Autoencoder, IWildCamDataset, CompressaiWrapper
 from lora_modules import LoRAConv2d, LoRALinear, LoRAConvTranspose2d
 import pytorch_lightning as pl
+import zlib
 
 #pretrained_filename = '8-epoch.04-val_loss.0.01.ckpt'
 
@@ -43,10 +44,23 @@ def main():
     # Now this works
     wrapper.model.update()  # Needed before compress()
     out = wrapper.compress(images)
-    data = out["strings"][0][0].hex(), out["strings"][0][1].hex(), out["strings"][1][0].hex(), out["strings"][1][1].hex()
+    print(out['strings'])
+    out['strings'] = [zlib.compress(s[0]) for s in out['strings']]  # Compress each byte string with zlib
+    print(out['strings'])
+    #data = out["strings"][0][0].hex(), out["strings"][0][1].hex(), out["strings"][1][0].hex(), out["strings"][1][1].hex()
    
-    with open("embeddings.txt", "w") as f:
-        f.write(",".join(data))
+   # with open("embeddings.txt", "w") as f:
+      #  f.write(",".join(data))
+
+    with open('embeddings_byte.bin', 'wb') as f:
+        print('length of strings0', len(out['strings'][0]))
+        for item in out['strings'][0]:
+            f.write(item)
+        # write a separate marker between the two byte sequences
+        f.write(b'], [')
+        print('length of strings1', len(out['strings'][1]))
+        for item in out['strings'][1]:
+            f.write(item)
 
     # Step 5: Calculate bit sizes
     compressed_bits = sum(len(s) for s in out["strings"][0]) * 8
