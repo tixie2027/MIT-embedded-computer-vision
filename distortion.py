@@ -12,7 +12,7 @@ from compressai.registry import register_criterion
 class RateDistortionLoss(nn.Module):
     """Custom rate distortion loss with a Lagrangian parameter."""
 
-    def __init__(self, lmbda=0.01, metric="mse", return_type="all", lambda_gain=2.0):
+    def __init__(self, lmbda=0.01, metric="mse", return_type="all"):
         super().__init__()
         if metric == "mse":
             self.metric = nn.MSELoss()
@@ -21,7 +21,6 @@ class RateDistortionLoss(nn.Module):
         else:
             raise NotImplementedError(f"{metric} is not implemented!")
         self.lmbda = lmbda
-        self.lambda_gain = lambda_gain
         self.return_type = return_type
 
     
