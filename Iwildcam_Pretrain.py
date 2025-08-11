@@ -350,11 +350,71 @@ class CompressaiWrapper(pl.LightningModule):
         for k, v in metrics.items():
             self.log(f'test_{k}', v)
 
-    def compress(self, x):
-        return self.model.compress(x)
+    def compress(self, x, mask=None, gain=0):
+        #return self.model.compress(x)
+        y = self.g_a(x)
+        z = self.h_a(torch.abs(y))
+
+        # Compress hyperprior
+        z_strings = self.entropy_bottleneck.compress(z)
+        z_hat = self.entropy_bottleneck.decompress(z_strings, z.size()[-2:])
+
+        # Predict quantization scales
+        scales_hat = self.h_s(z_hat)
+
+        if mask is not None:
+            # Resize mask to scales_hat resolution
+            mask_scales = F.interpolate(mask, size=scales_hat.shape[-2:], 
+                                        mode="bilinear", align_corners=False)
+            print(mask_scales)
+            # Adjust scales spatially
+            scales_hat = scales_hat * (1 + gain * (1 - 2 * mask_scales))
+            print(scales_hat)
+        
+        # Build indexes for entropy model
+        indexes = self.gaussian_conditional.build_indexes(scales_hat)
+        print(indexes)
+        old_table = self.gaussian_conditional.scale_table.cpu().numpy()
+        #print(old_table)
+
+        # Compress latents
+        y_strings = self.gaussian_conditional.compress(y, indexes)
+
+        return {
+            "strings": [y_strings, z_strings],
+            "shape": z.size()[-2:]
+        }
+
+
+
+
     
-    def decompress(self, strings, shape):
-        return self.model.decompress(strings, shape)
+    def decompress(self, strings, shape, mask=None, gain=0.0):
+        #return self.model.decompress(strings, shape)
+
+        assert isinstance(strings, list) and len(strings) == 2
+        
+        # Decode hyperprior
+        z_hat = self.entropy_bottleneck.decompress(strings[1], shape)
+        
+        # Predict quantization scales
+        scales_hat = self.h_s(z_hat)
+        
+        if mask is not None:
+            mask_scales = F.interpolate(mask, size=scales_hat.shape[-2:], 
+                                        mode="bilinear", align_corners=False)
+            scales_hat = scales_hat * (1 + gain * (1 - 2 * mask_scales))
+        
+        # Build indexes and decode latents
+        indexes = self.gaussian_conditional.build_indexes(scales_hat)
+        y_hat = self.gaussian_conditional.decompress(strings[0], indexes, z_hat.dtype)
+
+        # Reconstruct image
+        x_hat = self.g_s(y_hat).clamp_(0, 1)
+
+        return {"x_hat": x_hat}
+
+
 
 
 def compare_imgs(img1, img2, title_prefix="", i=0):
